@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<title>Simulador CIL de oro – Cianuración con carbón en lixiviación</title>
+<style>
+:root{--bg:#f3f5f2;--card:#fff;--ink:#1d2b26;--mut:#5a6b64;--line:#d5ddd8;--acc:#0f6b5c;--gold:#b8860b;--warn:#b3261e;--wbg:#fdecea;--ok:#1b7a3d}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 Georgia,"Times New Roman",serif}
+h1,h2,h3,label,button,.num,summary,.k{font-family:"Trebuchet MS","Segoe UI",system-ui,sans-serif}
+header{background:var(--acc);color:#fff;padding:14px 20px}
+header h1{margin:0;font-size:1.3rem}header p{margin:2px 0 0;font-size:.85rem;opacity:.9}
+.wrap{display:grid;grid-template-columns:290px minmax(0,1fr) 300px;gap:14px;padding:14px;max-width:1500px;margin:auto}
+@media(max-width:1050px){.wrap{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:12px;margin-bottom:12px}
+.card h2{font-size:1rem;margin:0 0 8px;color:var(--acc)}
+.sl{margin-bottom:9px}.sl label{display:flex;justify-content:space-between;font-size:.8rem}
+.sl .v{font-weight:700;color:var(--gold)}input[type=range]{width:100%;accent-color:var(--acc)}
+button{background:var(--acc);color:#fff;border:0;border-radius:4px;padding:8px 14px;cursor:pointer;font-size:.9rem;margin-right:6px}
+button.sec{background:#fff;color:var(--acc);border:1px solid var(--acc)}
+button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.row{display:flex;justify-content:space-between;gap:8px;border-bottom:1px dashed var(--line);padding:5px 0;font-size:.85rem}
+.row:last-child{border:0}.row b{font-family:"Trebuchet MS",system-ui,sans-serif;text-align:right}
+.ch{position:relative;height:290px}
+.alert{background:var(--wbg);border-left:5px solid var(--warn);padding:8px 10px;margin-bottom:8px;font-size:.85rem;border-radius:3px}
+.info{background:#eef6f3;border-left:5px solid var(--acc);padding:8px 10px;font-size:.85rem;border-radius:3px;margin-bottom:8px}
+.flow{display:flex;flex-wrap:wrap;gap:6px;align-items:stretch}
+.st{flex:1 1 120px;border:1px solid var(--line);border-top:4px solid var(--gold);border-radius:4px;padding:6px;font-size:.78rem;background:#fafaf7}
+.st b{display:block;color:var(--acc);font-family:"Trebuchet MS",system-ui,sans-serif}
+.st.cil{border-top-color:var(--acc);background:#eaf4f1}
+details{margin-bottom:12px}summary{cursor:pointer;font-weight:700;color:var(--acc)}
+details p,details li{font-size:.85rem}pre{background:#f3f1e8;padding:8px;overflow:auto;font-size:.8rem;border-radius:4px}
+.tag{font-size:.7rem;padding:1px 6px;border-radius:8px;background:var(--gold);color:#fff;font-family:system-ui,sans-serif}.tag.c5{background:var(--acc)}
+.t-ok{color:var(--ok)}.t-bad{color:var(--warn)}
+.small{font-size:.78rem;color:var(--mut)}
+.fund{background:#1b1d1f;color:#e6e6e6;border-radius:6px;padding:14px 18px;margin-top:10px}
+.fund h3{color:#fff;font-size:1.35rem;margin:18px 0 8px}.fund h3 .n{font-size:.8rem;color:#aab;margin-right:4px}
+.fund p{font-size:1rem;line-height:1.6}.fund .katex-display{margin:.8em 0;overflow-x:auto;overflow-y:hidden}
+.fund .intro{border-bottom:1px solid #3a3d40;padding-bottom:10px}.fund .aviso{border-top:1px solid #3a3d40;padding-top:10px;color:#f0c674}
+.blk{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:18px;background:#1b1d1f;color:#e6e6e6;border-radius:8px;padding:16px 18px;margin-bottom:14px}
+@media(max-width:820px){.blk{grid-template-columns:1fr}}
+.blk h3{color:#fff;font-size:1.3rem;margin:0 0 8px}.blk h3 .n{font-size:.8rem;color:#9aa3a8;margin-right:4px}
+.blk p{font-size:.95rem;line-height:1.55}.blk .small{color:#9aa3a8}
+.blk .katex-display{margin:.7em 0;overflow-x:auto;overflow-y:hidden}
+.note{border-left:3px solid #4fd1b5;padding:2px 0 2px 10px;font-size:.88rem;margin-top:10px}
+.panel{background:#26292c;border:1px solid #3a3d40;border-radius:8px;padding:12px;min-width:0}
+.panel h4{margin:0 0 8px;font:700 .85rem "Trebuchet MS",system-ui,sans-serif;color:#fff}
+.panel .sl{margin-bottom:6px}.panel label{color:#d8dbde}.panel .v{color:#e6c24d}
+.panel .row{border-color:#3a3d40;color:#d8dbde}.panel .row b{color:#fff}
+.panel .ch{height:230px;margin-top:10px}
+[hidden]{display:none!important}
+.tabs{display:flex;gap:4px;background:#0c4f44;padding:0 14px;flex-wrap:wrap}
+.tabs button{background:transparent;border-radius:0;color:#cfe;margin:0;padding:10px 16px;border-bottom:3px solid transparent}
+.tabs button[aria-selected=true]{color:#fff;border-bottom-color:var(--gold);font-weight:700}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px}@media(max-width:820px){.g2{grid-template-columns:1fr}}
+.t2,.t3{max-width:1500px;margin:auto;padding:14px}
+table{border-collapse:collapse;width:100%;font-size:.82rem;margin:8px 0}th,td{border:1px solid var(--line);padding:4px 6px;text-align:right}th:first-child,td:first-child{text-align:left}th{background:#eef3f0}
+.fl{display:block;font-size:.8rem;margin-bottom:6px}.fl input{width:100%;padding:5px;border:1px solid var(--line);border-radius:4px;font-size:.85rem}
+.pend{color:#9a6700;font-weight:700;font-size:.78rem}.tw{overflow-x:auto}
+.th-wrap{display:grid;grid-template-columns:190px minmax(0,1fr);gap:14px}@media(max-width:820px){.th-wrap{grid-template-columns:1fr}}
+.th-nav{position:sticky;top:8px;align-self:start}.th-nav a{display:block;padding:4px 0;color:var(--acc);font-size:.85rem;text-decoration:none}
+.th h3{color:var(--acc);margin:0 0 6px}.th section{scroll-margin-top:10px}.th svg{max-width:100%;color:var(--ink)}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:10px 0}@media(max-width:820px){.kpis{grid-template-columns:repeat(2,1fr)}}
+.kpi{background:#fafaf7;border:1px solid var(--line);border-top:4px solid var(--gold);border-radius:4px;padding:8px}.kpi.cx{border-top-color:var(--acc)}.kpi b{display:block;font-size:1.02rem;font-family:"Trebuchet MS",system-ui,sans-serif;margin:2px 0}.kpi span{font-size:.75rem;color:var(--mut)}
+.tag.pj{background:#1f5fa8}.th details{border:1px solid var(--line);border-radius:6px;background:#fff;padding:8px 14px;margin-bottom:10px}
+.th summary{font-size:1.05rem}.th .katex-display{background:#f3f1e8;border-radius:6px;padding:4px 8px;overflow-x:auto;overflow-y:hidden}
+.src{border-left:4px solid var(--gold);padding:2px 0 2px 10px;margin:8px 0;font-size:.88rem}.src.c5{border-color:var(--acc)}.src.pj{border-color:#1f5fa8}
+.tcards{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px;margin:8px 0}.tc{background:#fafaf7;border:1px solid var(--line);border-top:3px solid var(--acc);border-radius:4px;padding:8px;font-size:.84rem}.tc b{display:block;color:var(--acc);font-family:"Trebuchet MS",system-ui,sans-serif}
+.flow .ar{align-self:center;color:var(--gold);font-weight:700}.st.opt{border-style:dashed}.th p,.th li{font-size:.9rem}
+</style>
+</head>
+<body>
+<header><h1>Simulador CIL: lixiviación de oro con carbón activado</h1>
+<p>Proyecto "Desarrollo de un simulador para el procesamiento del oro mediante cianuración" · Mina de pequeña escala, Colombia · Herramienta educativa</p></header>
+<nav class="tabs" role="tablist"><button role="tab" id="tb1" aria-selected="true" onclick="tab(1)">Simulación CIL</button><button role="tab" id="tb2" aria-selected="false" onclick="tab(2)">Diseño y costos</button><button role="tab" id="tb3" aria-selected="false" onclick="tab(3)">Fundamento teórico</button></nav>
+
+<div class="wrap" id="tab1">
+<aside>
+ <div class="card"><h2>Parámetros de operación</h2><div id="ctl"></div>
+  <details><summary>Parámetros cinéticos avanzados (supuestos ajustables)</summary><div id="adv" style="margin-top:8px"></div></details>
+  <button id="bSim">Simular</button><button id="bRst" class="sec">Reiniciar</button>
+ </div>
+ <div class="card"><h2>Validaciones automáticas</h2><div id="tests" class="small"></div><button id="bTest" class="sec" style="margin-top:6px">Ejecutar validaciones</button></div>
+</aside>
+
+<main>
+ <div class="card"><h2>Proceso</h2>
+  <div class="flow">
+   <div class="st"><b>Mineral preparado</b>Molienda a P80 objetivo; liberación del oro.</div>
+   <div class="st"><b>Preoxidación</b>Para refractarios (pirita, arsenopirita): oxida sulfuros y expone el oro.</div>
+   <div class="st cil"><b>Cianuración CIL</b>Disolución (Elsner) y adsorción en carbón en los mismos tanques.</div>
+   <div class="st"><b>Carbón cargado</b>Se separa de la pulpa por tamizado.</div>
+   <div class="st"><b>Desorción / electroobtención</b>Elución del Au y deposición en cátodos.</div>
+   <div class="st"><b>Doré</b>Fundición del producto final.</div>
+  </div></div>
+ <section id="fund"><div class="card"><h2>Comportamiento del proceso</h2><div class="g2"><div class="panel"><h4>Calculadora: película líquida</h4>
+<div data-mirror="rpm"></div><div data-mirror="T"></div>
+<div id="rA" style="margin-top:6px"></div>
+<div class="ch"><canvas id="c3"></canvas></div>
+<p class="small">Barrido de 0 a 800 rpm con los demás parámetros fijos. A 0 rpm δ toma su valor máximo.</p></div><div class="panel"><h4>Calculadora: resistencias en serie</h4>
+<div data-mirror="p80"></div><div data-mirror="acc"></div>
+<div id="rB" style="margin-top:6px"></div>
+<div class="ch"><canvas id="c1"></canvas></div>
+<p class="small">Líneas continuas: lixiviación sin adsorción con cada resistencia. Punteada: integración RK4 del CIL completo.</p></div><div class="panel"><h4>Calculadora: saturación por reactivos</h4>
+<div data-mirror="cn"></div><div data-mirror="o2"></div>
+<div id="rC" style="margin-top:6px"></div>
+<div class="ch"><canvas id="c4"></canvas></div>
+<p class="small">k<sub>lix</sub> frente al cianuro libre con el O₂ y la agitación actuales. El punto es el caso actual: la curva se aplana cuando el CN⁻ deja de ser limitante.</p></div><div class="panel"><h4>Calculadora: balance de oro</h4>
+<div data-mirror="cc"></div><div data-mirror="t"></div>
+<div id="rD" style="margin-top:6px"></div>
+<div class="ch"><canvas id="c2"></canvas></div>
+<p class="small">Masas en gramos. La suma de las tres curvas es constante e igual al inventario de oro del circuito.</p></div></div><p class="small" style="margin:8px 0 0">Simulador educativo con escenario ilustrativo: requiere calibración con ensayos metalúrgicos antes de diseñar u operar una planta real.</p></div></section>
+</main>
+
+<aside>
+ <div class="card"><h2>Resultados</h2><div id="res"></div></div>
+ <div class="card"><h2>Seguridad</h2>
+  <div id="phAl"></div>
+  <ul class="small" style="padding-left:18px;margin:0">
+   <li><b>HCN:</b> gas tóxico y letal que se forma al acidificar o con pH bajo. Mantener pH alcalino reduce la formación, pero no elimina el riesgo; se requieren monitoreo y ventilación.</li>
+   <li><b>Toxicidad:</b> el cianuro es tóxico por ingestión, inhalación y contacto. Usar EPP, kits de emergencia y personal capacitado.</li>
+   <li><b>Oxígeno:</b> controlar el O₂ disuelto; sin él la disolución se detiene.</li>
+   <li><b>Efluentes:</b> tratar y detoxificar antes de cualquier vertimiento, según la normativa ambiental colombiana y el Código Internacional del Cianuro.</li>
+  </ul></div>
+</aside>
+</div>
+<div class="t2" id="tab2" hidden>
+<div class="card"><h2>Dimensionamiento de planta CIL</h2>
+<div class="g2"><div><div data-mirror="Q" data-label="Alimentación de mineral seco"></div><div data-mirror="sol" data-label="Porcentaje de sólidos en pulpa"></div><div id="desCtl"></div>
+<p class="small">Tanque de 10 m³ y llenado de 80 %: supuestos editables, no datos experimentales.</p></div><div id="desRes"></div></div>
+<div class="panel" style="margin:10px 0"><div id="tankSvg"></div></div>
+<p class="small">El modelo cinético es una aproximación equivalente por lotes del contenido del circuito, no un modelo riguroso de reactores CSTR en serie. El inventario de carbón usa el volumen de pulpa retenido en los tanques, no el procesado por día.</p></div>
+<div class="card"><h2>Costos de la planta CIL</h2>
+<div class="g2"><div><h3 style="margin:0 0 6px">A. Inversión inicial (CAPEX)</h3><div id="fCapex"></div><p class="small" id="carbInv"></p></div>
+<div><h3 style="margin:0 0 6px">B. Costos operativos (OPEX)</h3><label class="fl">Días de operación por mes <small>(d/mes)</small><input class="econ" type="number" min="1" max="31" step="1" id="dias" value="30"></label><div id="fOpex"></div></div></div>
+<div class="kpis" id="kpis"></div>
+<div class="g2"><div class="tw" id="tCapex"></div><div class="tw" id="tOpex"></div></div>
+<div class="g2"><div class="panel"><h4>Distribución porcentual de costos operativos</h4><div class="ch"><canvas id="c5"></canvas></div></div>
+<div class="panel"><h4>CAPEX (inversión única) vs. OPEX (recurrente)</h4><div class="ch"><canvas id="c6"></canvas></div></div></div>
+<p class="small" id="econMsg"></p></div>
+</div>
+<div class="t3" id="tab3" hidden><div class="th-wrap">
+<nav class="th-nav card" aria-label="Apartados"><b>Fundamento teórico</b>
+<a href="#t31" onclick="op('t31')">3.1 Lixiviación del oro</a><a href="#t32" onclick="op('t32')">3.2 Química</a><a href="#t33" onclick="op('t33')">3.3 Transferencia de masa</a><a href="#t34" onclick="op('t34')">3.4 Cinética de disolución</a><a href="#t35" onclick="op('t35')">3.5 Adsorción en carbón</a><a href="#t36" onclick="op('t36')">3.6 Variables del proceso</a><a href="#t37" onclick="op('t37')">3.7 Refractarios</a><a href="#t38" onclick="op('t38')">3.8 Indicadores</a><a href="#t39" onclick="op('t39')">3.9 Diagrama del proceso</a></nav>
+<div class="th">
+<div class="card"><b>Cómo leer esta pestaña</b> <span class="tag c5">Cap. 5 · Ray y Ray</span> <span class="tag pj">Proyecto</span> <span class="tag">Supuesto del simulador</span>
+<p class="small" style="margin:6px 0 0">Fuente principal: Ray, H. S. y Ray, S. (2018). <i>Kinetics of Metallurgical Processes</i>, cap. 5 «Fluid Phase Mass Transfer», Springer. Las etiquetas indican el origen de cada bloque; no se agregan otras referencias ni datos experimentales.</p></div>
+
+<details id="t31" open><summary>3.1 Fundamentos de la lixiviación del oro</summary>
+<p>La lixiviación es la disolución selectiva de un metal desde la mena mediante una solución lixiviante. Su objetivo metalúrgico es pasar el oro a la fase líquida para separarlo de la ganga sólida. En la cianuración, el oro metálico reacciona con cianuro y oxígeno disuelto y forma el complejo soluble $[\mathrm{Au(CN)_2}]^-$ en la pulpa.</p>
+<div class="tcards"><div class="tc"><b>Lixiviación convencional</b>Se lixivia en tanques, luego se separan sólido y líquido y el oro se recupera de la solución.</div>
+<div class="tc"><b>CIP (Carbon in Pulp)</b>Lixiviación y adsorción en etapas separadas: el carbón entra en tanques posteriores a la lixiviación.</div>
+<div class="tc"><b>CIL (Carbon in Leach)</b>El carbón está en los mismos tanques de lixiviación: disolución y adsorción ocurren a la vez. <span class="tag pj">Proyecto</span></div></div>
+<div class="flow"><div class="st"><b>CIL</b>Pulpa</div><span class="ar">→</span><div class="st cil">Tanque 1<br>Lix + carbón</div><span class="ar">→</span><div class="st cil">Tanque 2<br>Lix + carbón</div><span class="ar">→</span><div class="st cil">Tanque 3<br>Lix + carbón</div><span class="ar">→</span><div class="st">Relave</div></div>
+<div class="flow" style="margin-top:6px"><div class="st"><b>CIP</b>Pulpa</div><span class="ar">→</span><div class="st">Tanque 1<br>Lixiviación</div><span class="ar">→</span><div class="st">Tanque 2<br>Lixiviación</div><span class="ar">→</span><div class="st cil">Tanque 3<br>Adsorción + carbón</div><span class="ar">→</span><div class="st">Relave</div></div></details>
+
+<details id="t32"><summary>3.2 Química de la cianuración</summary>
+$$4\,\mathrm{Au}+8\,\mathrm{CN^-}+\mathrm{O_2}+2\,\mathrm{H_2O}\rightarrow 4\,[\mathrm{Au(CN)_2}]^-+4\,\mathrm{OH^-}$$
+<div class="src pj"><span class="tag pj">Proyecto</span> Reacción de Elsner, tal como figura en el enunciado del proyecto.</div>
+<div class="tcards"><div class="tc"><b>Cianuro libre</b>Forma el complejo aurocianuro estable que permite disolver el oro.</div><div class="tc"><b>Oxígeno disuelto</b>Es el oxidante de la reacción. Sin O₂ no hay disolución, aunque haya cianuro.</div><div class="tc"><b>pH alcalino</b>Mantiene el cianuro como CN⁻ y limita la formación de HCN. Un pH alto reduce, pero no elimina, el riesgo de HCN.</div></div>
+<div class="src"><span class="tag">Supuesto del simulador</span> El pH solo activa la alerta de HCN, no modifica la cinética. [CN⁻] y [O₂] se imponen constantes; no se calcula su consumo.</div></details>
+
+<details id="t33"><summary>3.3 Transferencia de masa en fase fluida</summary>
+<div class="src c5"><span class="tag c5">Cap. 5</span> Conceptos y ecuaciones del capítulo.</div>
+<div class="tcards"><div class="tc"><b>Difusión molecular</b>Movimiento neto del soluto desde zonas de mayor a menor concentración.</div><div class="tc"><b>Ley de Fick</b>El flujo es proporcional al gradiente de concentración.</div><div class="tc"><b>Capa límite líquida</b>Película de fluido casi quieta junto a la superficie, donde el transporte es difusivo.</div><div class="tc"><b>Agitación</b>Reduce el espesor δ y aumenta h<sub>m</sub>, hasta un límite físico.</div></div>
+$$J=-D\frac{dC}{dx}\qquad J=\frac{D\,(C_s-C_b)}{\delta}\quad\text{(Ec. 5.4)}\qquad h_m=\frac{D}{\delta}$$
+<div class="tw"><table><tr><th>Variable</th><th>Significado físico</th><th>Unidad</th></tr><tr><td>J</td><td>Flujo molar a través de la película</td><td>mol/m²·s</td></tr><tr><td>D</td><td>Difusividad del reactivo en la solución</td><td>m²/s</td></tr><tr><td>C<sub>s</sub>, C<sub>b</sub></td><td>Concentración en la interfase y en el seno del líquido</td><td>mol/m³</td></tr><tr><td>δ</td><td>Espesor de la película</td><td>m</td></tr><tr><td>h<sub>m</sub></td><td>Coeficiente de transferencia de masa</td><td>m/s</td></tr></table></div>
+<svg viewBox="0 0 330 140" font-family="sans-serif" font-size="11" role="img" aria-label="Capa límite" style="max-width:420px;width:100%"><rect x="10" y="10" width="70" height="100" fill="#b8860b" opacity=".5"/><text x="45" y="64" text-anchor="middle">Oro</text><rect x="80" y="10" width="60" height="100" fill="#7fb2ff" opacity=".25"/><polyline points="80,90 140,30 320,30" fill="none" stroke="#1d2b26" stroke-width="2"/><text x="110" y="126" text-anchor="middle">δ</text><text x="84" y="104">Cs</text><text x="230" y="22">Cb (seno de la solución)</text></svg>
+<p><b>Etapas controlantes:</b> la disolución puede estar limitada por el transporte en la película líquida, por la reacción en la superficie del oro o por ambas. No es lo mismo que difundir a través de una capa sólida de producto, que aquí no se modela.</p>
+<div class="src"><span class="tag">Supuesto del simulador</span> $\delta=\delta_{300}(300/\mathrm{rpm})^{0{,}5}$ limitado entre 8 y 200 µm, y $D(T)=D_{25}\,e^{0{,}02(T-25)}$. No provienen del capítulo.</div></details>
+
+<details id="t34"><summary>3.4 Cinética de disolución</summary>
+<div class="src c5"><span class="tag c5">Cap. 5</span> Primer orden (Ec. 5.12) y resistencias en serie.</div>
+$$-\ln(1-\alpha)=kt\qquad \alpha=1-e^{-kt}\qquad k=h_m\frac{A}{V}\qquad \frac{1}{k_{eff}}=\frac{1}{h_m}+\frac{1}{k_s}$$
+<p>α es la fracción disuelta (adimensional), k la constante (1/s o 1/h), A/V el área sobre volumen (m⁻¹), k<sub>s</sub> el coeficiente efectivo de reacción superficial y k<sub>eff</sub> el coeficiente global (m/s).</p>
+<div class="tcards"><div class="tc"><b>Control por transferencia de masa</b>Domina 1/h<sub>m</sub>: la película es la mayor resistencia. Agitar más acelera la disolución.</div><div class="tc"><b>Control por reacción superficial</b>Domina 1/k<sub>s</sub>: agitar más casi no cambia la velocidad.</div><div class="tc"><b>Control mixto</b>Ambas resistencias son comparables. El simulador lo declara si la película aporta entre 40 % y 60 %.</div></div>
+<div class="src"><span class="tag">Supuesto del simulador</span> $k_{lix}=K_{cal}\,k_{eff}\,\dfrac{6}{P_{80}}\,3600\,f_{CN}\,f_{O_2}$ [h⁻¹], con $f_{CN}=\dfrac{[\mathrm{CN^-}]}{50+[\mathrm{CN^-}]}$ y $f_{O_2}=\dfrac{[\mathrm{O_2}]}{2+[\mathrm{O_2}]}$. K<sub>cal</sub> es un factor de calibración; k<sub>s</sub>(T) sigue Arrhenius con E<sub>a</sub> = 30 kJ/mol. Son valores ilustrativos.</div>
+<p><b>Alcance:</b> estos modelos son aproximaciones para representar la cinética de disolución; no describen todos los fenómenos reales de la cianuración (distribución de tamaños, ubicación del oro, consumo de reactivos). Requieren calibración con ensayos. La extracción nunca supera la fracción de oro accesible.</p></details>
+
+<details id="t35"><summary>3.5 Adsorción del oro sobre carbón activado</summary>
+<p>El complejo aurocianuro disuelto viaja en la pulpa hasta el carbón activado, atraviesa su película externa, difunde en los poros y se retiene en su superficie interna. El carbón recupera el oro de la solución dentro del mismo circuito.</p>
+<div class="tcards"><div class="tc"><b>Capacidad de carga</b>Masa máxima de oro que retiene el carbón por masa de carbón (q<sub>max</sub>).</div><div class="tc"><b>Velocidad de adsorción</b>Disminuye al acercarse a la saturación del carbón.</div><div class="tc"><b>Cantidad de carbón</b>Más carbón aumenta M<sub>cap</sub> y acelera la adsorción.</div><div class="tc"><b>Disuelto vs. adsorbido</b>Disuelto: en la solución. Adsorbido: ya retenido en el carbón.</div></div>
+<div class="src"><span class="tag">Supuesto del simulador</span> Balances de masa implementados (kg, kg/h), con RK4:</div>
+$$\frac{dM_s}{dt}=-r_{dis}\quad \frac{dM_l}{dt}=r_{dis}-r_{ads}\quad \frac{dM_c}{dt}=r_{ads}$$
+$$r_{dis}=k_{lix}(M_s-M_{inac})\qquad r_{ads}=k_{ads}M_l\left(1-\frac{M_c}{M_{cap}}\right)\qquad M_{cap}=m_C\,q_{max}$$
+<p>M<sub>s</sub> incluye el oro inaccesible M<sub>inac</sub>, que no se disuelve. Se cumple M₀ = M<sub>s</sub> + M<sub>l</sub> + M<sub>c</sub>. k<sub>ads</sub> se define a 15 g/L de carbón y escala linealmente con la dosis. El cálculo usa el inventario de oro y carbón del circuito, como aproximación equivalente por lotes, no como CSTR en serie.</p></details>
+
+<details id="t36"><summary>3.6 Variables que afectan el proceso CIL</summary>
+<div class="tw"><table><tr><th>Variable</th><th>Disolución del oro</th><th>Adsorción en carbón</th></tr>
+<tr><td>Temperatura</td><td>Aumenta D y k<sub>s</sub>; baja la solubilidad del O₂</td><td>Acelera la velocidad; la carga de equilibrio tiende a bajar</td></tr>
+<tr><td>Agitación</td><td>Reduce δ y sube h<sub>m</sub> hasta un límite</td><td>Mejora el contacto; en exceso desgasta el carbón</td></tr>
+<tr><td>Cianuro</td><td>Aumenta la velocidad hasta saturar</td><td>Un exceso puede competir con el oro</td></tr>
+<tr><td>Oxígeno disuelto</td><td>Imprescindible; satura</td><td>Efecto indirecto</td></tr>
+<tr><td>pH</td><td>Evita HCN; no modelado en la cinética</td><td>La adsorción tiende a ser mayor a pH menos alto</td></tr>
+<tr><td>Tamaño de partícula</td><td>Menor P80: mayor A/V y mejor liberación</td><td>Efecto indirecto</td></tr>
+<tr><td>% de sólidos</td><td>Más viscosidad y menor transferencia de O₂</td><td>Pulpas densas ralentizan la adsorción</td></tr>
+<tr><td>Tiempo de residencia</td><td>Más extracción, hasta el oro accesible</td><td>Más contacto, hasta la capacidad de carga</td></tr>
+<tr><td>Concentración de carbón</td><td>Sin efecto directo en la disolución</td><td>Más M<sub>cap</sub> y mayor velocidad</td></tr></table></div></details>
+
+<details id="t37"><summary>3.7 Procesamiento de minerales refractarios</summary>
+<p>En minerales con pirita y arsenopirita, parte del oro queda ocluido en la red del sulfuro y el cianuro no llega a él. Además, estos sulfuros consumen oxígeno y cianuro. La <b>preoxidación</b> (pretratamiento oxidativo) destruye los sulfuros, libera o expone el oro y permite cianurarlo después. <span class="tag pj">Proyecto</span></p>
+<div class="src"><span class="tag">Supuesto del simulador</span> El efecto de la preoxidación se resume en la fracción de oro accesible, un dato de entrada.</div></details>
+
+<details id="t38"><summary>3.8 Indicadores metalúrgicos</summary>
+<div class="tcards"><div class="tc"><b>Ley de cabeza</b>g de oro por t de mineral alimentado.</div><div class="tc"><b>Oro alimentado</b>Q·ley/1000, en kg/d.</div><div class="tc"><b>Oro accesible</b>Parte del oro que el cianuro puede disolver: f<sub>acc</sub>·M₀.</div><div class="tc"><b>Extracción</b>Oro disuelto desde el mineral, incluido el que luego se adsorbe.</div><div class="tc"><b>Recuperación</b>Oro retenido en el carbón respecto al alimentado.</div><div class="tc"><b>Oro disuelto</b>M<sub>l</sub>: el que está en la solución.</div><div class="tc"><b>Oro adsorbido</b>M<sub>c</sub>: el que está en el carbón.</div><div class="tc"><b>Ley de relaves</b>g/t de oro que sale en el sólido.</div><div class="tc"><b>Carga en carbón</b>g de oro por t de carbón.</div></div>
+$$\text{Extracción}=\frac{M_0-M_s}{M_0}\qquad \text{Recuperación}=\frac{M_c}{M_0}$$
+<div class="src"><b>Ejemplo didáctico (no experimental):</b> de 100 g de oro alimentado, 85 g se disuelven; 80 g ya están en el carbón y 5 g siguen en solución. Extracción = 85 %. Recuperación = 80 %. La diferencia (5 %) es oro disuelto aún no adsorbido, que se pierde si sale con la solución.</div></details>
+
+<details id="t39"><summary>3.9 Diagrama general del proceso</summary>
+<div class="flow"><div class="st">Mineral</div><span class="ar">→</span><div class="st">Trituración y molienda</div><span class="ar">→</span><div class="st">Clasificación</div><span class="ar">→</span><div class="st opt">Concentración y pretratamiento (si corresponde)</div><span class="ar">→</span><div class="st">Neutralización y lavado</div><span class="ar">→</span><div class="st cil">Cianuración CIL</div><span class="ar">→</span><div class="st">Carbón cargado</div><span class="ar">→</span><div class="st">Desorción y electroobtención</div><span class="ar">→</span><div class="st">Fundición</div><span class="ar">→</span><div class="st">Doré</div></div>
+<p class="small">Ruta tomada del enunciado del proyecto. El recuadro punteado aplica a minerales refractarios (preoxidación). El simulador representa solo la etapa de cianuración CIL; las demás son contexto del proceso. <span class="tag pj">Proyecto</span></p></details>
+</div></div></div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+<script>
+const PAR=[['Q','Capacidad de procesamiento','t/d',1,100,1,20],['g','Ley de oro','g/t',1,50,0.5,12],['cn','Cianuro libre','mg/L',0,1000,10,400],['o2','Oxígeno disuelto','mg/L',0,12,0.1,7],['p80','Tamaño P80','µm',10,150,1,45],['cc','Carbón activado','g/L pulpa',0,40,1,15],['sol','Sólidos en pulpa','%',20,55,1,40],['t','Tiempo de lixiviación','h',1,72,1,24],['T','Temperatura','°C',5,50,1,25],['pH','pH','',8,12,0.1,10.5],['rpm','Agitación','rpm',0,800,10,300],['acc','Fracción de oro accesible','%',30,100,1,85]];
+const ADV=[['ks','ks a 25 °C','×10⁻⁶ m/s',0.5,50,0.5,10],['D','D a 25 °C','×10⁻⁹ m²/s',0.5,3,0.1,1.5],['kc','Kcal (exposición del oro)','×10⁻⁴',0.1,5,0.1,1],['kads','k_ads (a 15 g/L C)','h⁻¹',0.05,3,0.05,0.8],['qmax','Carga máxima del carbón','g Au/kg C',1,15,0.5,8],['d0','δ a 300 rpm','µm',10,100,1,30]];
+const DES=[['rhos','Densidad del mineral','t/m³',2,4,0.05,2.7],['rhow','Densidad del agua','t/m³',0.95,1.05,0.01,1],['tau','Tiempo de residencia requerido','h',4,72,1,24],['Vt','Volumen geométrico de cada tanque','m³',2,100,1,10],['fill','Porcentaje de llenado de los tanques','%',50,95,1,80]];
+const FC=[['ctank','Costo unitario de cada tanque','COP/tanque'],['cagit','Costo de cada agitador (1 por tanque)','COP/agitador'],['cbomb','Costo de bombas','COP'],['caux','Equipos auxiliares','COP'],['cinst','Instalación y montaje','COP'],['ccarb0','Carga inicial de carbón activado','COP'],['cother','Otros equipos e inversiones (opcional)','COP']];
+const FO=[['kgcn','Consumo de cianuro','kg/t'],['pcn','Precio del cianuro','COP/kg'],['kgcal','Consumo de cal','kg/t'],['pcal','Precio de la cal','COP/kg'],['rep','Reposición de carbón','kg/t'],['pcarb','Precio del carbón','COP/kg'],['kwh','Consumo eléctrico','kWh/t'],['tar','Tarifa de electricidad','COP/kWh'],['lab','Mano de obra','COP/día'],['mnt','Mantenimiento','COP/día'],['eff','Tratamiento de efluentes','COP/t']];
+const fmt=(x,d=2)=>x.toLocaleString('es-CO',{minimumFractionDigits:d,maximumFractionDigits:d});
+const sci=x=>x.toExponential(2).replace('.',',');
+function build(el,list){list.forEach(([id,lb,u,mn,mx,st,df])=>{const d=document.createElement('div');d.className='sl';
+ d.innerHTML=`<label for="${id}"><span>${lb}</span><span class="v"><span id="${id}_v"></span> ${u}</span></label><input type="range" id="${id}" min="${mn}" max="${mx}" step="${st}" value="${df}">`;el.appendChild(d);
+ d.querySelector('input').addEventListener('input',run);});}
+build(document.getElementById('ctl'),PAR);build(document.getElementById('adv'),ADV);build(document.getElementById('desCtl'),DES);
+function getP(){const p={};[...PAR,...ADV,...DES].forEach(([id])=>{const e=document.getElementById(id);p[id]=parseFloat(e.value);document.getElementById(id+'_v').textContent=fmt(p[id],e.step<1?(e.step<0.1?2:1):0);});return p;}
+
+const DMIN=8,DMAX=200,Ea=30000,R=8.314;
+function kin(p,rpm){
+ const TK=p.T+273.15,D=p.D*1e-9*Math.exp(0.02*(p.T-25));
+ const ks=p.ks*1e-6*Math.exp(Ea/R*(1/298.15-1/TK));
+ let dl=rpm<=0?DMAX:p.d0*Math.pow(300/rpm,0.5);dl=Math.min(DMAX,Math.max(DMIN,dl));
+ const hm=D/(dl*1e-6),AV=6/(p.p80*1e-6),keff=1/(1/hm+1/ks);
+ const fCN=p.cn/(50+p.cn),fO=p.o2/(2+p.o2),f=p.kc*1e-4*AV*3600*fCN*fO;
+ return{D,ks,dl,hm,AV,keff,fCN,fO,kmix:keff*f,kmt:hm*f,ksf:ks*f,Rf:(1/hm)/(1/hm+1/ks)};
+}
+function design(p){const w=p.sol/100,F=p.Q,Qs=F/24/p.rhos,Qw=F*(1-w)/w/24/p.rhow,Qp=Qs+Qw,Vreq=Qp*p.tau,Vu=p.Vt*p.fill/100,N=Math.max(1,Math.ceil(Vreq/Vu-1e-9)),Vc=N*Vu,Ms=Vc*(F/24)/Qp;
+ return{Qs,Qw,Qp,Vreq,Vu,N,Vc,Vg:N*p.Vt,tr:Vc/Qp,Msolc:Ms,Vl:Vc*Qw/Qp,Mgold:Ms*p.g/1000};}
+function tankSvg(d,p){const n=Math.min(d.N,6),W=70,G=36,x0=70,ex=d.N>6?80:0,tw=x0+n*(W+G)+ex+60;
+ const ln=(a,b,c,e)=>`<line x1="${a}" y1="${b}" x2="${c}" y2="${e}" stroke="#e6e6e6" stroke-width="2" marker-end="url(#ar)"/>`;
+ let s=`<svg viewBox="0 0 ${tw} 205" role="img" aria-label="Tanques CIL en serie" style="width:100%;max-height:240px"><g font-size="11" fill="#e6e6e6" text-anchor="middle" font-family="sans-serif"><defs><marker id="ar" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L8 4L0 8z" fill="#e6e6e6"/></marker></defs>`;
+ s+=ln(6,100,x0-4,100)+'<text x="34" y="88">Pulpa</text><text x="34" y="118">entrada</text><text x="30" y="26">Carbón</text>'+ln(46,30,x0+10,64);
+ const lv=110*p.fill/100,dots=[[14,126],[36,138],[54,120],[24,108],[48,142],[40,112]];
+ for(let i=0;i<n;i++){const x=x0+i*(W+G),c=x+W/2;
+  s+=`<rect x="${x}" y="50" width="${W}" height="110" fill="none" stroke="#e6e6e6" stroke-width="2"/><rect x="${x+1}" y="${160-lv}" width="${W-2}" height="${lv-1}" fill="#3d6a8a" opacity=".7"/><rect x="${c-8}" y="30" width="16" height="12" fill="#e6c24d"/><line x1="${c}" y1="42" x2="${c}" y2="145" stroke="#e6e6e6" stroke-width="2"/><line x1="${c-20}" y1="145" x2="${c+20}" y2="145" stroke="#e6e6e6" stroke-width="3"/>`+dots.map(q=>`<circle cx="${x+q[0]}" cy="${Math.max(q[1],160-lv+8)}" r="3" fill="#111" stroke="#fff"/>`).join('')+`<text x="${c}" y="180">T${i+1}</text>`;
+  if(i<n-1)s+=ln(x+W+2,100,x+W+G-2,100);}
+ const xe=x0+(n-1)*(W+G)+W;
+ if(d.N>6)s+=`<text x="${xe+42}" y="104">… hasta T${d.N}</text>`;
+ s+=ln(xe+ex+2,100,xe+ex+46,100)+`<text x="${xe+ex+30}" y="88">Pulpa</text><text x="${xe+ex+30}" y="118">salida</text><text x="${tw/2}" y="200" fill="#9aa3a8">● carbón activado · ┃ agitador · zona azul: nivel de llenado (${fmt(p.fill,0)} %)</text></g></svg>`;
+ return s;}
+function renderDes(p,m){const d=m.dz,tr=model({...p,t:d.tr}).ext;
+ panel('desRes',[['Número de tanques necesarios','<span style="font-size:1.1rem">'+d.N+'</span>'],['Caudal de pulpa Q_p',fmt(d.Qp,2)+' m³/h'],['Volumen útil requerido',fmt(d.Vreq,1)+' m³'],['Volumen geométrico total instalado',fmt(d.Vg,1)+' m³'],['Volumen útil total instalado',fmt(d.Vc,1)+' m³'],['Volumen de cada tanque',fmt(p.Vt,1)+' m³ (útil '+fmt(d.Vu,1)+' m³)'],['Tiempo de residencia real',fmt(d.tr,2)+' h'],['Pulpa en el circuito',fmt(d.Vc,1)+' m³'],['Inventario de carbón',fmt(m.mC,0)+' kg'],['Capacidad de carga M_cap',fmt(m.Mcap,2)+' kg Au'],['Inventario de oro en tanques',fmt(m.M0,3)+' kg'],['Extracción a τ real ('+fmt(d.tr,1)+' h)',fmt(tr,1)+' %']]);
+ document.getElementById('tankSvg').innerHTML=tankSvg(d,p);}
+function econCalc(p,m,V){const N=m.dz.N,Q=p.Q,pr=(ids,f)=>{const v=ids.map(V);return v.some(x=>x==null)?null:v.reduce((t,x)=>t*x,1)*f;},ms=ids=>ids.filter(i=>V(i)==null);
+ const cx=[['Tanques','ctank',N],['Agitadores','cagit',N],['Bombas','cbomb',1],['Equipos auxiliares','caux',1],['Instalación y montaje','cinst',1],['Carga inicial de carbón','ccarb0',1],['Otros equipos e inversiones','cother',1]].map(([n,id,q])=>({n,q,c:V(id),opt:id=='cother',s:pr([id],q),miss:ms([id])}));
+ const ox=[['Cianuro',['kgcn','pcn'],Q],['Cal',['kgcal','pcal'],Q],['Carbón (reposición)',['rep','pcarb'],Q],['Energía eléctrica',['kwh','tar'],Q],['Mano de obra',['lab'],1],['Mantenimiento',['mnt'],1],['Tratamiento de efluentes',['eff'],Q]].map(([n,ids,f])=>({n,d:pr(ids,f),miss:ms(ids)}));
+ const sum=a=>a.reduce((t,x)=>t+(x==null?0:x),0),cxs=cx.filter(r=>!(r.opt&&r.s==null)).map(r=>r.s),oxs=ox.map(r=>r.d);
+ return{cx,ox,capex:sum(cxs),capexK:cxs.filter(x=>x!=null).length,capexMiss:cxs.filter(x=>x==null).length,opex:sum(oxs),opexK:oxs.filter(x=>x!=null).length,opexMiss:oxs.filter(x=>x==null).length};}
+const PEND='<span class="pend">Pendiente de cotización</span>';
+const cop=v=>v==null?PEND:fmt(v,0);
+function renderEcon(p,m){const V=id=>{const v=parseFloat(document.getElementById(id).value);return isFinite(v)&&v>=0?v:null;},dias=V('dias')||30,e=econCalc(p,m,V),Q=p.Q,k=e.opexK,kc=e.capexK,rec=Q*p.g/1000*m.rec/100;
+ const LB=Object.fromEntries([...FC,...FO].map(a=>[a[0],a[1]])),pc=(n,mi)=>n&&mi?' · parcial':'';
+ document.getElementById('carbInv').textContent='Inventario de carbón del circuito: '+fmt(m.mC,0)+' kg ('+fmt(p.cc,0)+' g/L × '+fmt(m.dz.Vc,1)+' m³ de pulpa).';
+ const card=(t,v,u,c)=>`<div class="kpi ${c}"><span>${t}</span><b>${v}</b><span>${u}</span></div>`;
+ document.getElementById('kpis').innerHTML=card('Inversión inicial (CAPEX)',kc?fmt(e.capex,0)+' COP':PEND,'inversión única'+pc(kc,e.capexMiss),'cx')+card('Costo operativo diario (OPEX)',k?fmt(e.opex,0)+' COP/d':PEND,'gasto recurrente'+pc(k,e.opexMiss),'')+card('Costo por tonelada procesada',k?fmt(e.opex/Q,0)+' COP/t':PEND,'OPEX ÷ alimentación'+pc(k,e.opexMiss),'')+card('Costo por kg de Au recuperado',k&&rec>0?fmt(e.opex/rec,0)+' COP/kg Au':PEND,'recuperación en carbón: '+fmt(rec*1000,1)+' g/d'+pc(k,e.opexMiss),'');
+ document.getElementById('tCapex').innerHTML='<b>Desglose CAPEX</b><table><tr><th>Rubro</th><th>Cant.</th><th>Unitario (COP)</th><th>Subtotal (COP)</th></tr>'+e.cx.map(r=>`<tr><td>${r.n}</td><td>${r.q}</td><td>${r.c==null?(r.opt?'—':PEND):fmt(r.c,0)}</td><td>${r.s==null?(r.opt?'—':PEND):fmt(r.s,0)}</td></tr>`).join('')+`<tr><th>Inversión inicial total</th><th></th><th></th><th>${kc?fmt(e.capex,0)+(e.capexMiss?' (parcial)':''):PEND}</th></tr></table>`;
+ document.getElementById('tOpex').innerHTML='<b>Desglose OPEX</b><table><tr><th>Rubro</th><th>COP/día</th><th>COP/t</th><th>%</th></tr>'+e.ox.map(r=>`<tr><td>${r.n}</td><td>${cop(r.d)}</td><td>${r.d==null?PEND:fmt(r.d/Q,0)}</td><td>${r.d==null||!e.opex?'—':fmt(r.d/e.opex*100,1)}</td></tr>`).join('')+`<tr><th>Total OPEX diario</th><th>${k?fmt(e.opex,0)+(e.opexMiss?' (parcial)':''):PEND}</th><th>${k?fmt(e.opex/Q,0):PEND}</th><th>${k?'100':'—'}</th></tr><tr><th>OPEX mensual (${dias} d)</th><th colspan="3">${k?fmt(e.opex*dias,0)+' COP/mes'+(e.opexMiss?' (parcial)':''):PEND}</th></tr></table>`;
+ const kn=e.ox.filter(r=>r.d!=null);
+ c5.data.labels=kn.map(r=>r.n);c5.data.datasets=[{data:kn.map(r=>r.d),backgroundColor:['#7fb2ff','#4fd1b5','#e6c24d','#ff8a80','#c39bd3','#f0b27a','#aab7b8']}];c5.update();
+ c6.data.labels=['CAPEX (única vez)','OPEX mensual ('+dias+' d)','OPEX anual (12 meses)'];c6.data.datasets=[{label:'COP (parcial si faltan rubros)',data:[kc?e.capex:null,k?e.opex*dias:null,k?e.opex*dias*12:null],backgroundColor:['#e6c24d','#7fb2ff','#4fd1b5']}];c6.update();
+ const pend=[...e.cx.filter(r=>r.s==null&&!r.opt).map(r=>'CAPEX · '+r.n+': '+r.miss.map(i=>LB[i]).join(', ')),...e.ox.filter(r=>r.d==null).map(r=>'OPEX · '+r.n+': '+r.miss.map(i=>LB[i]).join(', '))];
+ document.getElementById('econMsg').innerHTML=pend.length?'<b>Datos pendientes de cotización ('+pend.length+' rubros); los totales mostrados son parciales:</b><br>'+pend.join('<br>'):'Todos los rubros tienen datos ingresados.';}
+function op(id){document.getElementById(id).open=true;}
+function tab(i){[1,2,3].forEach(k=>{document.getElementById('tab'+k).hidden=k!=i;document.getElementById('tb'+k).setAttribute('aria-selected',k==i);});Object.values(Chart.instances).forEach(c=>c.resize());}
+function model(p){
+ const dz=design(p),K=kin(p,p.rpm),M0=dz.Mgold,Mi=M0*(1-p.acc/100),Vp=dz.Vc,Vl=dz.Vl;
+ const mC=p.cc*Vp,Mcap=mC*p.qmax/1000,ka=p.kads*p.cc/15;
+ const f=s=>{const rd=K.kmix*Math.max(s[0]-Mi,0),ra=Mcap>0?ka*Math.max(s[1],0)*Math.max(1-s[2]/Mcap,0):0;return[-rd,rd-ra,ra];};
+ const N=Math.max(200,Math.ceil(p.t/0.05)),h=p.t/N;let s=[M0,0,0];const H=[{t:0,s:s.slice()}];
+ for(let i=0;i<N;i++){const a=f(s),b=f(s.map((v,j)=>v+h/2*a[j])),c=f(s.map((v,j)=>v+h/2*b[j])),d=f(s.map((v,j)=>v+h*c[j]));
+  s=s.map((v,j)=>v+h/6*(a[j]+2*b[j]+2*c[j]+d[j]));s[0]=Math.max(s[0],Mi);s[1]=Math.max(s[1],0);s[2]=Math.min(Math.max(s[2],0),Mcap);
+  if(i%4==3||i==N-1)H.push({t:(i+1)*h,s:s.slice()});}
+ const e=H[H.length-1].s,err=M0>0?(M0-(e[0]+e[1]+e[2]))/M0*100:0;
+ return{dz,mC,K,M0,Mi,Vl,Mcap,H,e,ext:(M0-e[0])/M0*100,rec:e[2]/M0*100,conc:e[1]*1000/(Vl*1000)*1000/1000,err};
+}
+// conc: kg -> mg/L = kg*1e6 mg / (Vl m3*1000 L)
+function conc(m){return m.e[1]*1e6/(m.Vl*1000);}
+
+const col={a:'#ff8a80',b:'#7fb2ff',c:'#4fd1b5',d:'#e6c24d'};Chart.defaults.color='#cfd3d6';Chart.defaults.borderColor='rgba(255,255,255,.14)';
+const base={responsive:true,maintainAspectRatio:false,animation:false,elements:{point:{radius:0},line:{borderWidth:2}}};
+const ax=(t,o={})=>Object.assign({title:{display:true,text:t}},o);
+const c1=new Chart('c1',{type:'line',data:{datasets:[]},options:{...base,scales:{x:ax('Tiempo (h)',{type:'linear'}),y:ax('Extracción (%)',{min:0})}}});
+const c2=new Chart('c2',{type:'line',data:{datasets:[]},options:{...base,scales:{x:ax('Tiempo (h)',{type:'linear'}),y:ax('Oro (g)',{min:0})}}});
+const c3=new Chart('c3',{type:'line',data:{datasets:[]},options:{...base,scales:{x:ax('Agitación (rpm)',{type:'linear'}),y:ax('δ (µm)',{position:'left',min:0}),y1:ax('hm (×10⁻⁵ m/s)',{position:'right',min:0,grid:{drawOnChartArea:false}}),y2:ax('k_lix (h⁻¹)',{position:'right',min:0,grid:{drawOnChartArea:false}})}}});
+
+const c5=new Chart('c5',{type:'doughnut',data:{labels:[],datasets:[]},options:{responsive:true,maintainAspectRatio:false,animation:false,plugins:{legend:{position:'right'}}}});
+const c6=new Chart('c6',{type:'bar',data:{labels:[],datasets:[]},options:{responsive:true,maintainAspectRatio:false,animation:false,scales:{y:{title:{display:true,text:'COP'},beginAtZero:true}}}});
+const c4=new Chart('c4',{type:'line',data:{datasets:[]},options:{...base,scales:{x:ax('CN⁻ libre (mg/L)',{type:'linear'}),y:ax('k_lix (h⁻¹)',{min:0})}}});
+const panel=(id,r)=>{document.getElementById(id).innerHTML=r.map(([a,b])=>`<div class="row"><span>${a}</span><b>${b}</b></div>`).join('');};
+function run(){
+ const p=getP(),m=model(p),K=m.K;
+ const T=[];for(let i=0;i<=100;i++)T.push(p.t*i/100);
+ const al=k=>T.map(t=>({x:t,y:p.acc*(1-Math.exp(-k*t))}));
+ c1.data.datasets=[{label:'Control por transferencia de masa',data:al(K.kmt),borderColor:col.b},{label:'Control superficial',data:al(K.ksf),borderColor:col.a},{label:'Mixto (analítico)',data:al(K.kmix),borderColor:col.c},{label:'Mixto CIL (RK4)',data:m.H.map(r=>({x:r.t,y:(m.M0-r.s[0])/m.M0*100})),borderColor:'#fff',borderDash:[5,4]}];
+ c1.options.scales.y.max=100;c1.update();
+ c2.data.datasets=[['Oro sólido restante',0,col.d],['Oro disuelto en solución',1,col.b],['Oro adsorbido en carbón',2,col.c]].map(([l,j,c])=>({label:l,data:m.H.map(r=>({x:r.t,y:r.s[j]*1000})),borderColor:c}));c2.update();
+ const S=[];for(let r=0;r<=800;r+=25)S.push(kin(p,r));
+ c3.data.datasets=[{label:'δ (µm)',yAxisID:'y',borderColor:col.a,data:S.map((k,i)=>({x:i*25,y:k.dl}))},{label:'hm (×10⁻⁵ m/s)',yAxisID:'y1',borderColor:col.b,data:S.map((k,i)=>({x:i*25,y:k.hm*1e5}))},{label:'k_lix mixto (h⁻¹)',yAxisID:'y2',borderColor:col.c,data:S.map((k,i)=>({x:i*25,y:k.kmix}))}];c3.update();
+ let mech;const rp=K.Rf*100;
+ if(K.kmix===0)mech='Sin disolución (falta CN⁻ u O₂)';else mech=rp>60?'Transferencia de masa (película)':rp<40?'Reacción superficial':'Control mixto';
+ const R=(a,b)=>`<div class="row"><span>${a}</span><b>${b}</b></div>`;
+ document.getElementById('res').innerHTML=R('Oro alimentado (flujo)',fmt(p.Q*p.g/1000,3)+' kg/d')+R('Inventario de oro en tanques',fmt(m.M0,3)+' kg')+R('Extracción de oro',fmt(m.ext,1)+' %')+R('Recuperación en carbón',fmt(m.rec,1)+' %')+R('Oro cargado en carbón',fmt(m.e[2],4)+' kg')+R('Oro disuelto',fmt(conc(m),3)+' mg/L')+R('Coef. hm',sci(K.hm)+' m/s')+R('Espesor δ',fmt(K.dl,1)+' µm')+R('k_eff',sci(K.keff)+' m/s')+R('k_lix',fmt(K.kmix,3)+' h⁻¹')+R('Resistencia en película',fmt(rp,0)+' %')+R('Mecanismo predominante',mech)+R('Error de balance',sci(Math.abs(m.err))+' %')+R('Capacidad del carbón',fmt(m.Mcap,3)+' kg')+R('Oro inaccesible',fmt(m.Mi,3)+' kg')+R('Ley de relaves (sólido)',fmt(m.e[0]*1000/m.dz.Msolc,2)+' g/t')+R('Carga de oro en carbón',m.mC>0?fmt(m.e[2]*1e6/m.mC,0)+' g/t C':'—');
+ panel('rA',[['D (a la T actual)',sci(K.D)+' m²/s'],['δ',fmt(K.dl,1)+' µm'],['hm = D/δ',sci(K.hm)+' m/s'],['A/V = 6/P80',sci(K.AV)+' m⁻¹']]);
+ panel('rB',[['1/hm',sci(1/K.hm)+' s/m'],['1/ks',sci(1/K.ks)+' s/m'],['k_eff',sci(K.keff)+' m/s'],['Resistencia en película',fmt(rp,0)+' %'],['Mecanismo',mech]]);
+ panel('rC',[['f_CN',fmt(K.fCN,3)],['f_O₂',fmt(K.fO,3)],['K_cal',sci(p.kc*1e-4)],['k_lix',fmt(K.kmix,3)+' h⁻¹']]);
+ panel('rD',[['Inventario de oro M₀',fmt(m.M0*1000,1)+' g'],['Inaccesible M_inac',fmt(m.Mi*1000,1)+' g'],['Capacidad M_cap',fmt(m.Mcap*1000,1)+' g'],['Extracción',fmt(m.ext,1)+' %'],['Recuperación en carbón',fmt(m.rec,1)+' %'],['Error de balance',sci(Math.abs(m.err))+' %']]);
+ const CN=[];for(let x=0;x<=1000;x+=20)CN.push({x,y:kin({...p,cn:x},p.rpm).kmix});
+ c4.data.datasets=[{label:'k_lix',data:CN,borderColor:col.c},{label:'Caso actual',data:[{x:p.cn,y:K.kmix}],showLine:false,pointRadius:6,backgroundColor:'#f48fb1',borderColor:'#f48fb1'}];c4.update();
+ document.querySelectorAll('.mir').forEach(i=>{const g=document.getElementById(i.dataset.id);i.value=g.value;i.parentNode.querySelector('.mv').textContent=fmt(+g.value,g.step<1?1:0);});
+ document.getElementById('phAl').innerHTML=p.pH<10.5?'<div class="alert"><b>⚠ Riesgo de HCN:</b> pH inferior a 10,5. Se favorece la formación de cianuro de hidrógeno gaseoso. Corrija el pH con cal o soda antes de continuar.</div>':'<div class="info">pH ≥ 10,5: el riesgo de HCN disminuye pero no desaparece. Mantenga monitoreo y ventilación.</div>';
+ renderDes(p,m);renderEcon(p,m);
+ return m;
+}
+const DEF={};[...PAR,...ADV].forEach(a=>DEF[a[0]]=a[6]);
+function tests(){
+ const p0=getP(),ok=[],T=(n,c)=>ok.push(`<div class="${c?'t-ok':'t-bad'}">${c?'✔':'✘'} ${n}</div>`);
+ T('Sin cianuro no hay disolución',model({...p0,cn:0}).ext<1e-9);
+ T('Sin oxígeno no hay disolución',model({...p0,o2:0}).ext<1e-9);
+ T('Sin carbón no hay adsorción',model({...p0,cc:0}).e[2]===0);
+ const m=model(p0);T('Se conserva la masa de oro (error < 1e-9 %)',Math.abs(m.err)<1e-9);
+ T('Extracción ≤ fracción accesible',m.ext<=p0.acc+1e-9);
+ T('Sin masas negativas ni cargas > M_cap',m.H.every(r=>r.s.every(v=>v>=0)&&r.s[2]<=m.Mcap+1e-12));
+ T('Sin NaN con rpm = 0',isFinite(model({...p0,rpm:0}).ext));
+ T('hm responde a la agitación (100 vs 600 rpm)',kin(p0,600).hm>kin(p0,100).hm);
+ T('La extracción responde al tiempo (1 h vs 48 h)',model({...p0,t:48}).ext>model({...p0,t:1}).ext);
+ const d0=m.dz,Vf=o=>id=>o[id]??null,o1={kgcn:1,pcn:1000,ctank:1e6,lab:5e4},e0=econCalc(p0,m,()=>null),e1=econCalc(p0,m,Vf(o1)),e2=econCalc({...p0,Q:60},model({...p0,Q:60}),Vf(o1)),e3=econCalc(p0,m,Vf({...o1,lab:9e4}));
+ T('N cambia con la capacidad (20 vs 60 t/d)',model({...p0,Q:60}).dz.N>d0.N);
+ T('N cambia con el tiempo de residencia (24 vs 48 h)',model({...p0,tau:48}).dz.N>d0.N);
+ T('Volumen útil instalado ≥ requerido',d0.Vc>=d0.Vreq-1e-9);
+ T('τ real = V útil instalado / Q_p (≥ τ requerido)',Math.abs(d0.tr-d0.Vc/d0.Qp)<1e-9&&d0.tr>=p0.tau-1e-9);
+ T('Inventario de carbón = C × pulpa del circuito',Math.abs(m.mC-p0.cc*d0.Vc)<1e-9);
+ const dx=model({...p0,Q:1,sol:20,Vt:100,fill:95,tau:4});T('Sin negativos ni NaN en el caso extremo',dx.dz.N>=1&&isFinite(dx.ext)&&dx.e.every(v=>v>=0));
+ T('Costos sin cotización quedan pendientes',e0.ox.every(r=>r.d==null)&&e0.cx.every(r=>r.s==null));
+ T('Costos cambian con capacidad y N',e2.opex>e1.opex&&e2.capex>e1.capex);
+ T('CAPEX y OPEX no se mezclan',e3.capex===e1.capex&&e3.opex!==e1.opex);
+ document.getElementById('tests').innerHTML=ok.join('');
+}
+document.getElementById('bSim').onclick=()=>{run();tests();};
+document.getElementById('bRst').onclick=()=>{[...PAR,...ADV,...DES].forEach(([id,,,,,,d])=>document.getElementById(id).value=d);document.querySelectorAll('.econ').forEach(i=>i.value='');document.getElementById('dias').value=30;run();tests();};
+document.getElementById('bTest').onclick=tests;
+document.querySelectorAll('[data-mirror]').forEach(d=>{const id=d.dataset.mirror,g=document.getElementById(id),L=[...PAR,...ADV].find(x=>x[0]==id);
+ d.className='sl';d.innerHTML=`<label><span>${d.dataset.label||L[1]}</span><span class="v"><span class="mv"></span> ${L[2]}</span></label><input type="range" class="mir" data-id="${id}" min="${g.min}" max="${g.max}" step="${g.step}" aria-label="${L[1]}">`;
+ d.querySelector('input').addEventListener('input',e=>{g.value=e.target.value;run();});});
+const mk=(el,L)=>{document.getElementById(el).innerHTML=L.map(([id,lb,u])=>`<label class="fl">${lb} <small>(${u})</small><input class="econ" type="number" min="0" step="any" id="${id}" placeholder="Pendiente de cotización"></label>`).join('');};
+mk('fCapex',FC);mk('fOpex',FO);document.querySelectorAll('.econ').forEach(i=>i.addEventListener('input',run));
+try{renderMathInElement(document.getElementById('tab3'),{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],throwOnError:false});}catch(e){console.warn(e);}
+run();tests();
+</script>
+</body>
+</html>
